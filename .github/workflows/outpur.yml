@@ -1,5 +1,4 @@
 name: Flutter Linux Build
-
 on:
   push:
     branches:
@@ -7,13 +6,11 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
@@ -24,25 +21,25 @@ jobs:
     - name: Enable linux build
       run: flutter config --enable-linux-desktop
     - name: Build Flutter app for Linux
-      run: flutter build linux
+      run: flutter build linux --release
+    - name: Compress release bundle
+      run: |
+        cd build/linux/x64/release/bundle
+        zip -r ../../../../../linux-release-bundle.zip .
     - name: Archive Production Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: linux-release
-        path: build/linux/x64/release/bundle/
-
+        path: linux-release-bundle.zip
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-
+    - uses: actions/checkout@v3
     - name: Download Artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: linux-release
-        path: ./build
-
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
@@ -54,13 +51,12 @@ jobs:
         body: Release of the build from the commit ${{ github.sha }}.
         draft: false
         prerelease: false
-
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/linux/x64/release/bundle
-        asset_name: linux-release-bundle
+        asset_path: ./linux-release-bundle.zip
+        asset_name: linux-release-bundle.zip
         asset_content_type: application/zip
