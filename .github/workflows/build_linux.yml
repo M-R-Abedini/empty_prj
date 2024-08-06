@@ -8,8 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: subosito/flutter-action@v2
+    - uses: actions/checkout
+    - uses: subosito/flutter-action
       with:
         flutter-version: 'stable'
     - name: Get dependencies
@@ -29,7 +29,7 @@ jobs:
         draft: false
         prerelease: false
     - name: Upload Release Asset
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact
       with:
         path: build/linux/x64
         name: linux-app
