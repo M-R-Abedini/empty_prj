@@ -30,11 +30,3 @@ jobs:
       with:
         name: linux-release
         path: build/linux/x64/release/bundle
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/linux/x64/release/bundle/linux-release.zip
-        tag: czxvbcx
-        overwrite: true
-        body: "This is first release"
