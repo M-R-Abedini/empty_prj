@@ -1,0 +1,55 @@
+name: Build and Release Flutter Linux
+
+on:
+  push:
+    branches:
+      - main  # یا شاخه‌ای که می‌خواهید روی آن عمل کنید
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v3
+        with:
+          flutter-version: '3.7.0'  # نسخه Flutter مورد نظر
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Linux Desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Build Linux Release
+        run: flutter build linux --release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-release
+          path: build/linux/x64/release/bundle/  # مسیر به باندل خروجی
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 'v1.0.0'  # تنظیم نسخه مناسب
+          release_name: 'Release v1.0.0'
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/linux/x64/release/bundle/your_executable  # مسیر به فایل اجرایی
+          asset_name: your_executable  # نام فایل اجرایی
+          asset_content_type: application/octet-stream
