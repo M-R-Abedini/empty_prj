@@ -29,7 +29,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: linux-release
-        path: build/linux/x64/release/bundle
+        path: build/linux/x64/release/bundle/
 
   release:
     needs: build
