@@ -40,7 +40,6 @@ class MyHomePageState extends State<MyHomePage> {
         child: ElevatedButton(
           onPressed: () async {
             final Jalali? picked = await showPersianDatePicker(
-              
               context: context,
               initialDate: Jalali.fromDateTime(
                   DateTime.fromMillisecondsSinceEpoch(1722942780132)),
@@ -56,7 +55,7 @@ class MyHomePageState extends State<MyHomePage> {
               });
             }
           },
-          child: const Text('انتخاب تاریخ'),
+          child: const Text('تاریخ '),
         ),
       ),
     );
