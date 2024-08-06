@@ -63,6 +63,7 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v2
       with:
+        github_token: <MY_TOKEN>
         draft: true
         prerelease: false
         title: "Linux Release"
