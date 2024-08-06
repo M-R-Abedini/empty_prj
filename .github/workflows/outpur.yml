@@ -35,6 +35,6 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/linux/x64/release/bundle/linux-release.zip
-        tag: v1.0
+        tag: czxvbcx
         overwrite: true
         body: "This is first release"
