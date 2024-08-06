@@ -55,7 +55,7 @@ class MyHomePageState extends State<MyHomePage> {
               });
             }
           },
-          child: const Text('تاریخ '),
+          child: const Text('تاریخ انتخاب'),
         ),
       ),
     );
