@@ -6,11 +6,12 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
@@ -26,37 +27,28 @@ jobs:
       run: |
         cd build/linux/x64/release/bundle
         zip -r ../../../../../linux-release-bundle.zip .
-    - name: Archive Production Artifact
+    - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: linux-release
         path: linux-release-bundle.zip
+
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-    - uses: actions/checkout@v3
-    - name: Download Artifact
+    - uses: actions/checkout@v4
+    - name: Download artifact
       uses: actions/download-artifact@v3
       with:
         name: linux-release
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
+    - name: Create release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        release_name: Release ${{ github.run_number }}
-        body: Release of the build from the commit ${{ github.sha }}.
-        draft: false
-        prerelease: false
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./linux-release-bundle.zip
-        asset_name: linux-release-bundle.zip
-        asset_content_type: application/zip
+      run: |
+        gh release create v1.0.${{ github.run_number }} \
+          --title "Release ${{ github.run_number }}" \
+          --notes "Release of the build from the commit ${{ github.sha }}." \
+          linux-release-bundle.zip
