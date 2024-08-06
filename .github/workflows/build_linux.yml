@@ -1,45 +1,35 @@
-name: Flutter Linux Build
+name: Flutter Build and Release
 
 on:
   push:
-    branches:
-      - main  # یا هر شاخه دیگری که می‌خواهید روی آن اجرا شود
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # تغییر در این خط
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable' # یا 'beta' یا 'dev'
-      - run: flutter pub get
-      - run: flutter build linux --release
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: 'stable'
+    - name: Get dependencies
+      run: flutter pub get
+    - name: Build for linux
+      run: flutter build linux
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: linux-build
-          path: build/linux/x64/release/bundle
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/linux/x64/release/bundle/
-          asset_name: linux-build.zip
-          asset_content_type: application/zip
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.run_id }}
+        release_name: Build ${{ github.run_id }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/linux/x64
+        name: linux-app
