@@ -32,7 +32,6 @@
 #         path: build/linux/x64/release/bundle
 
 name: Flutter Linux Build
-
 on:
   push:
     branches:
@@ -40,11 +39,9 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - uses: subosito/flutter-action@v2
@@ -66,9 +63,9 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v2
       with:
-        github_token: ${{ secrets.MY_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         draft: true
         prerelease: false
         title: "Linux Release"
         body: "Automatically generated release notes."
-        artifact: linux-release
+        artifacts: "build/linux/x64/release/bundle/*"
