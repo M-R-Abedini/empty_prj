@@ -26,27 +26,34 @@ jobs:
       run: flutter build linux --release
     - name: Create .deb package
       run: |
-        cd build/linux/x64/release/bundle
-        mkdir -p DEBIAN
-        echo "Package: my-flutter-app" > DEBIAN/control
-        echo "Version: 1.0.${{ github.run_number }}" >> DEBIAN/control
-        echo "Section: base" >> DEBIAN/control
-        echo "Priority: optional" >> DEBIAN/control
-        echo "Architecture: amd64" >> DEBIAN/control
-        echo "Maintainer: Your Name <your.email@example.com>" >> DEBIAN/control
-        echo "Description: My Flutter App" >> DEBIAN/control
-        dpkg-deb --build . ../../../../../linux-release-bundle.deb
-    - name: Compress release bundle
-      run: |
-        cd build/linux/x64/release/bundle
-        zip -r ../../../../../linux-release-bundle.zip .
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-release
-        path: |
-          linux-release-bundle.zip
-          linux-release-bundle.deb
+        mkdir -p package/usr/bin
+        mkdir -p package/usr/share/applications
+        mkdir -p package/usr/share/icons/hicolor/256x256/apps
+
+        cp build/linux/x64/release/bundle/* package/usr/bin/
+
+        # Create the .desktop file
+        echo "[Desktop Entry]" > package/usr/share/applications/my-flutter-app.desktop
+        echo "Name=My Flutter App" >> package/usr/share/applications/my-flutter-app.desktop
+        echo "Exec=/usr/bin/my-flutter-app" >> package/usr/share/applications/my-flutter-app.desktop
+        echo "Icon=my-flutter-app" >> package/usr/share/applications/my-flutter-app.desktop
+        echo "Type=Application" >> package/usr/share/applications/my-flutter-app.desktop
+        echo "Categories=Utility;" >> package/usr/share/applications/my-flutter-app.desktop
+
+        # Copy the icon (adjust path and size as necessary)
+        cp path/to/icon.png package/usr/share/icons/hicolor/256x256/apps/my-flutter-app.png
+
+        # Create DEBIAN/control file
+        mkdir -p package/DEBIAN
+        echo "Package: my-flutter-app" > package/DEBIAN/control
+        echo "Version: 1.0.${{ github.run_number }}" >> package/DEBIAN/control
+        echo "Section: base" >> package/DEBIAN/control
+        echo "Priority: optional" >> package/DEBIAN/control
+        echo "Architecture: amd64" >> package/DEBIAN/control
+        echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
+        echo "Description: My Flutter App" >> package/DEBIAN/control
+
+        dpkg-deb --build package ../../linux-release-bundle.deb
 
   build-windows:
     runs-on: windows-latest
