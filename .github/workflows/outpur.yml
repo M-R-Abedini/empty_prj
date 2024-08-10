@@ -139,7 +139,13 @@ jobs:
           git config --local user.name "GitHub Action"
           git add version.json
           git commit -m "Update version.json for release ${{ github.run_number }}"
+          
+          # Pull latest changes and rebase
+          git pull --rebase
+          
+          # Push changes
           git push
+
 
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4
