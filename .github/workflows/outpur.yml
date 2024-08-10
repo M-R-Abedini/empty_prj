@@ -54,8 +54,17 @@ jobs:
         echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
         echo "Description: My Flutter App" >> package/DEBIAN/control
 
-        dpkg-deb --build package ../../linux-release-bundle.deb
-
+        dpkg-deb --build package linux-release-bundle.deb
+    - name: Compress release bundle
+      run: |
+        zip -r linux-release-bundle.zip build/linux/x64/release/bundle/*
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-release
+        path: |
+          linux-release-bundle.deb
+          linux-release-bundle.zip
 
   build-windows:
     runs-on: windows-latest
@@ -145,7 +154,6 @@ jobs:
           
           # Push changes
           git push
-
 
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4
