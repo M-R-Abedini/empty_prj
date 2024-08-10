@@ -42,7 +42,7 @@ jobs:
         echo "Categories=Utility;" >> package/usr/share/applications/my-flutter-app.desktop
 
         # Copy the icon (adjust path and size as necessary)
-        cp path/to/icon.png package/usr/share/icons/hicolor/256x256/apps/my-flutter-app.png
+        cp lib/assets/Icon-192.png package/usr/share/icons/hicolor/256x256/apps/my-flutter-app.png
 
         # Create DEBIAN/control file
         mkdir -p package/DEBIAN
