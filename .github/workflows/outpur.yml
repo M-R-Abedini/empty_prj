@@ -30,7 +30,8 @@ jobs:
         mkdir -p package/usr/share/applications
         mkdir -p package/usr/share/icons/hicolor/256x256/apps
 
-        cp build/linux/x64/release/bundle/* package/usr/bin/
+        # Copy all files including directories recursively
+        cp -r build/linux/x64/release/bundle/* package/usr/bin/
 
         # Create the .desktop file
         echo "[Desktop Entry]" > package/usr/share/applications/my-flutter-app.desktop
@@ -54,6 +55,7 @@ jobs:
         echo "Description: My Flutter App" >> package/DEBIAN/control
 
         dpkg-deb --build package ../../linux-release-bundle.deb
+
 
   build-windows:
     runs-on: windows-latest
