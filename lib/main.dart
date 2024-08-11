@@ -107,60 +107,37 @@ class MyHomePageState extends State<MyHomePage> {
     await _dio.download(url, debPath);
 
     if (Platform.isLinux) {
-      // استخراج و نصب به صورت دستی بدون نیاز به sudo
-      final extractDir = path.join(appDocDir.path, 'extracted_app');
-      await Directory(extractDir).create(recursive: true);
-
-      final result =
-          await Process.run('ar', ['x', debPath], workingDirectory: extractDir);
-      if (result.exitCode != 0) {
-        print(result.stderr);
-        throw 'Failed to extract .deb package';
-      }
-
-      // حذف فایل .deb پس از استخراج
-      await File(debPath).delete();
-
-      // راه‌اندازی مجدد برنامه با نسخه جدید
-      await _restartApp(path.join(extractDir, 'usr', 'bin', 'empty_prj'));
+      await _createInstallScript(debPath);
+      await _restartApp();
     }
   }
 
-  Future<void> _restartApp(String appPath) async {
-    if (Platform.isLinux) {
-      final Directory tempDir = await getTemporaryDirectory();
-      final String scriptPath = path.join(tempDir.path, 'restart_app.sh');
+  Future<void> _createInstallScript(String debPath) async {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-      await _createRestartScript(scriptPath, appPath);
-
-      final result = await Process.run('bash', [scriptPath]);
-
-      if (result.exitCode == 0) {
-        await File(scriptPath).delete();
-        exit(0);
-      } else {
-        print('Failed to restart the app');
-        print(result.stderr);
-        await File(scriptPath).delete();
-      }
-    }
-  }
-
-  Future<void> _createRestartScript(String scriptPath, String appPath) async {
-    final script = '''
+    String script = '''
 #!/bin/bash
-
-pkill -f "$appPath"
-
-sleep 2
-
-nohup "$appPath" > /dev/null 2>&1 &
-
-exit 0
+pkexec dpkg -i "$debPath"
+rm "$debPath"
+/usr/bin/empty_prj &
 ''';
 
     await File(scriptPath).writeAsString(script);
     await Process.run('chmod', ['+x', scriptPath]);
+  }
+
+  Future<void> _restartApp() async {
+    if (Platform.isLinux) {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+
+      // اجرای اسکریپت در پس‌زمینه
+      await Process.start('bash', [scriptPath]);
+
+      // بستن برنامه فعلی
+      exit(0);
+    }
   }
 
   @override
