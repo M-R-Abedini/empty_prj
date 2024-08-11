@@ -1,7 +1,7 @@
 name: empty_prj
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.14
+version: 1.0.15
 
 
 environment:

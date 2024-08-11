@@ -175,7 +175,7 @@ class MyHomePageState extends State<MyHomePage> {
                   });
                 }
               },
-              child: const Text('تاریخ '),
+              child: const Text(' روزشمار ایرانی '),
             ),
             Text(
                 'Current App Version: $currentVersion'), // نمایش نسخه فعلی اپلیکیشن
