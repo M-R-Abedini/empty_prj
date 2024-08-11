@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
-import 'package:path/path.dart' as path;
 
 void main() {
   runApp(const MyApp());
@@ -118,6 +117,7 @@ class MyHomePageState extends State<MyHomePage> {
 
     String script = '''
 #!/bin/bash
+sleep 2  # اضافه کردن یک تأخیر کوچک
 pkexec dpkg -i "$debPath"
 rm "$debPath"
 /usr/bin/empty_prj &
@@ -134,6 +134,9 @@ rm "$debPath"
 
       // اجرای اسکریپت در پس‌زمینه
       await Process.start('bash', [scriptPath]);
+
+      // افزودن یک تأخیر کوچک قبل از بستن برنامه
+      await Future.delayed(Duration(seconds: 2));
 
       // بستن برنامه فعلی
       exit(0);
