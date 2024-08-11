@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
 void main() {
@@ -57,6 +56,7 @@ class MyHomePageState extends State<MyHomePage> {
         'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
     if (response.statusCode == 200) {
+      print(response.data);
       final data = jsonDecode(response.data) as Map<String, dynamic>;
       final versionInfo = VersionInfo.fromJson(data);
 
@@ -123,18 +123,28 @@ class MyHomePageState extends State<MyHomePage> {
         print(result.stderr);
         throw 'Failed to install .deb package';
       }
-    }
 
-    // پاکسازی فایل‌های موقت
-    await File(debPath).delete();
+      // پاکسازی فایل‌های موقت
+      await File(debPath).delete();
+
+      // بستن و اجرای مجدد برنامه
+      await _restartApp();
+    }
   }
 
-  Future<void> _openFile(String filePath) async {
-    final uri = Uri.file(filePath);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not open $filePath';
+  Future<void> _restartApp() async {
+    // بستن برنامه فعلی
+    if (Platform.isLinux) {
+      final executable = Platform.resolvedExecutable;
+      final result = await Process.run('bash', ['-c', 'nohup $executable &']);
+
+      // بررسی اجرای مجدد
+      if (result.exitCode == 0) {
+        exit(0); // بستن برنامه فعلی
+      } else {
+        print('Failed to restart the app');
+        print(result.stderr);
+      }
     }
   }
 
@@ -142,7 +152,7 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' تقویم'),
+        title: const Text(' تاریخ و زمان '),
       ),
       body: Center(
         child: Column(
@@ -165,11 +175,7 @@ class MyHomePageState extends State<MyHomePage> {
                   });
                 }
               },
-              child: const Text(' تقویم شمسی'),
-            ),
-
-            SizedBox(
-              height: 16,
+              child: const Text('تاریخ '),
             ),
             Text(
                 'Current App Version: $currentVersion'), // نمایش نسخه فعلی اپلیکیشن
