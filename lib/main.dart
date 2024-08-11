@@ -170,7 +170,7 @@ rm "$debPath"
                   });
                 }
               },
-              child: const Text(' روزشمار ایرانی '),
+              child: const Text('تقویم شمسی'),
             ),
             Text('Current App Version: $currentVersion'),
           ],
