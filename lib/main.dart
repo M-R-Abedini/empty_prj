@@ -38,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   Jalali selectedDate = Jalali.now();
   final Dio _dio = Dio();
+  String currentVersion = '';
 
   @override
   void initState() {
@@ -48,8 +49,10 @@ class MyHomePageState extends State<MyHomePage> {
   Future<void> _checkForUpdate() async {
     // دریافت نسخه فعلی اپلیکیشن
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String currentVersion = packageInfo.version;
-
+    setState(() {
+      currentVersion =
+          packageInfo.version; // مقداردهی currentVersion و به‌روزرسانی UI
+    });
     // دریافت فایل version.json از GitHub
     final response = await _dio.get(
         'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
@@ -168,28 +171,34 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تاریخ و زمان فارسی'),
+        title: const Text(' تاریخ و زمان فارسی'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            final Jalali? picked = await showPersianDatePicker(
-              context: context,
-              initialDate: Jalali.fromDateTime(
-                  DateTime.fromMillisecondsSinceEpoch(1722942780132)),
-              firstDate: Jalali(1390),
-              lastDate: Jalali(1410),
-            );
-            if (picked != null) {
-              setState(() {
-                selectedDate = picked;
-                int millisecondsSinceEpoch =
-                    selectedDate.toDateTime().millisecondsSinceEpoch;
-                print(millisecondsSinceEpoch);
-              });
-            }
-          },
-          child: const Text('تاریخ انتخاب'),
+        child: Column(
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final Jalali? picked = await showPersianDatePicker(
+                  context: context,
+                  initialDate: Jalali.fromDateTime(
+                      DateTime.fromMillisecondsSinceEpoch(1722942780132)),
+                  firstDate: Jalali(1390),
+                  lastDate: Jalali(1410),
+                );
+                if (picked != null) {
+                  setState(() {
+                    selectedDate = picked;
+                    int millisecondsSinceEpoch =
+                        selectedDate.toDateTime().millisecondsSinceEpoch;
+                    print(millisecondsSinceEpoch);
+                  });
+                }
+              },
+              child: const Text('تاریخ انتخاب'),
+            ),
+            Text(
+                'Current App Version: $currentVersion'), // نمایش نسخه فعلی اپلیکیشن
+          ],
         ),
       ),
     );
