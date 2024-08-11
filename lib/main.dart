@@ -133,14 +133,19 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _restartApp() async {
-    // بستن برنامه فعلی
     if (Platform.isLinux) {
       final executable = Platform.resolvedExecutable;
-      final result = await Process.run('bash', ['-c', 'nohup $executable &']);
+      final processId = pid;
 
-      // بررسی اجرای مجدد
+      // بستن برنامه فعلی
+      await Process.run('kill', ['-9', processId.toString()]);
+
+      // اجرای مجدد برنامه
+      final result = await Process.run('nohup', [executable, '&'],
+          workingDirectory: Directory.current.path);
+
       if (result.exitCode == 0) {
-        exit(0); // بستن برنامه فعلی
+        exit(0); // بستن برنامه فعلی بعد از اجرای مجدد
       } else {
         print('Failed to restart the app');
         print(result.stderr);
