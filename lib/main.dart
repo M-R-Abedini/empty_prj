@@ -107,27 +107,31 @@ class MyHomePageState extends State<MyHomePage> {
     await _dio.download(url, debPath);
 
     if (Platform.isLinux) {
-      final result = await Process.run('sudo', ['dpkg', '-i', debPath]);
+      // استخراج و نصب به صورت دستی بدون نیاز به sudo
+      final extractDir = path.join(appDocDir.path, 'extracted_app');
+      await Directory(extractDir).create(recursive: true);
 
-      print(result.stdout);
+      final result =
+          await Process.run('ar', ['x', debPath], workingDirectory: extractDir);
       if (result.exitCode != 0) {
         print(result.stderr);
-        throw 'Failed to install .deb package';
+        throw 'Failed to extract .deb package';
       }
 
+      // حذف فایل .deb پس از استخراج
       await File(debPath).delete();
 
-      await _restartApp();
+      // راه‌اندازی مجدد برنامه با نسخه جدید
+      await _restartApp(path.join(extractDir, 'usr', 'bin', 'empty_prj'));
     }
   }
 
-  Future<void> _restartApp() async {
+  Future<void> _restartApp(String appPath) async {
     if (Platform.isLinux) {
-      final String executePath = Platform.resolvedExecutable;
       final Directory tempDir = await getTemporaryDirectory();
       final String scriptPath = path.join(tempDir.path, 'restart_app.sh');
 
-      await _createRestartScript(scriptPath, executePath);
+      await _createRestartScript(scriptPath, appPath);
 
       final result = await Process.run('bash', [scriptPath]);
 
