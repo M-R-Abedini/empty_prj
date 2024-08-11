@@ -6,7 +6,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
-import 'package:archive/archive.dart';
 
 void main() {
   runApp(const MyApp());
@@ -58,7 +57,6 @@ class MyHomePageState extends State<MyHomePage> {
         'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
     if (response.statusCode == 200) {
-      print(response.data);
       final data = jsonDecode(response.data) as Map<String, dynamic>;
       final versionInfo = VersionInfo.fromJson(data);
 
@@ -71,7 +69,8 @@ class MyHomePageState extends State<MyHomePage> {
       } else if (Platform.isWindows) {
         downloadUrl = data['windows_url'];
       } else if (Platform.isLinux) {
-        downloadUrl = data['linux_url'];
+        downloadUrl =
+            data['linux_deb_url']; // تغییر لینک دانلود به لینک فایل .deb
       }
 
       // مقایسه نسخه‌ها
@@ -109,53 +108,25 @@ class MyHomePageState extends State<MyHomePage> {
 
   Future<void> _downloadAndInstall(String url) async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    String zipPath = '${appDocDir.path}/new_version.zip';
-    String extractPath = '${appDocDir.path}/new_version';
+    String debPath = '${appDocDir.path}/new_version.deb';
 
-    // دانلود فایل زیپ
-    await _dio.download(url, zipPath);
+    // دانلود فایل .deb
+    await _dio.download(url, debPath);
 
-    // استخراج فایل زیپ
-    final bytes = File(zipPath).readAsBytesSync();
-    final archive = ZipDecoder().decodeBytes(bytes);
-    for (final file in archive) {
-      final filename = file.name;
-      if (file.isFile) {
-        final data = file.content as List<int>;
-        File('$extractPath/$filename')
-          ..createSync(recursive: true)
-          ..writeAsBytesSync(data);
+    // نصب فایل .deb
+    if (Platform.isLinux) {
+      final result = await Process.run('sudo', ['dpkg', '-i', debPath]);
+
+      // نمایش خروجی نصب در Console
+      print(result.stdout);
+      if (result.exitCode != 0) {
+        print(result.stderr);
+        throw 'Failed to install .deb package';
       }
-    }
-
-    // اجرای فایل مناسب
-    String executablePath;
-    if (Platform.isWindows) {
-      executablePath = '$extractPath/empty_prj.exe';
-    } else if (Platform.isLinux) {
-      executablePath = '$extractPath/fast_sale';
-      // اضافه کردن مجوز اجرا برای لینوکس
-      await Process.run('chmod', ['+x', executablePath]);
-    } else if (Platform.isAndroid) {
-      executablePath = '$extractPath/app-release.apk';
-    } else {
-      throw 'Unsupported platform';
-    }
-
-    // اجرای فایل
-    if (await File(executablePath).exists()) {
-      if (Platform.isWindows || Platform.isLinux) {
-        await Process.start(executablePath, []);
-      } else if (Platform.isAndroid) {
-        await _openFile(executablePath);
-      }
-    } else {
-      throw 'Executable file not found';
     }
 
     // پاکسازی فایل‌های موقت
-    await File(zipPath).delete();
-    // توجه: شاید بخواهید پوشه استخراج شده را نگه دارید یا آن را هم پاک کنید
+    await File(debPath).delete();
   }
 
   Future<void> _openFile(String filePath) async {
@@ -210,8 +181,10 @@ class VersionInfo {
   final String linuxUrl;
   final String windowsUrl;
   final String androidUrl;
+  final String linuxDebUrl;
 
   VersionInfo({
+    required this.linuxDebUrl,
     required this.version,
     required this.linuxUrl,
     required this.windowsUrl,
@@ -224,6 +197,7 @@ class VersionInfo {
       linuxUrl: json['linux_url'],
       windowsUrl: json['windows_url'],
       androidUrl: json['android_url'],
+      linuxDebUrl: json['linux_deb_url'],
     );
   }
 }
