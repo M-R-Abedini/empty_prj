@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   runApp(const MyApp());
@@ -41,17 +42,14 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _checkForUpdate(); // بررسی به‌روزرسانی هنگام شروع اپلیکیشن
+    _checkForUpdate();
   }
 
   Future<void> _checkForUpdate() async {
-    // دریافت نسخه فعلی اپلیکیشن
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
-      currentVersion =
-          packageInfo.version; // مقداردهی currentVersion و به‌روزرسانی UI
+      currentVersion = packageInfo.version;
     });
-    // دریافت فایل version.json از GitHub
     final response = await _dio.get(
         'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
@@ -63,19 +61,15 @@ class MyHomePageState extends State<MyHomePage> {
       String newVersion = versionInfo.version;
       String downloadUrl = versionInfo.linuxUrl;
 
-      // انتخاب لینک دانلود مناسب بر اساس پلتفرم
       if (Platform.isAndroid) {
         downloadUrl = data['android_url'];
       } else if (Platform.isWindows) {
         downloadUrl = data['windows_url'];
       } else if (Platform.isLinux) {
-        downloadUrl =
-            data['linux_deb_url']; // تغییر لینک دانلود به لینک فایل .deb
+        downloadUrl = data['linux_deb_url'];
       }
 
-      // مقایسه نسخه‌ها
       if (newVersion != currentVersion && downloadUrl.isNotEmpty) {
-        // نسخه جدید موجود است
         _showUpdateDialog(downloadUrl);
       }
     }
@@ -110,47 +104,58 @@ class MyHomePageState extends State<MyHomePage> {
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String debPath = '${appDocDir.path}/new_version.deb';
 
-    // دانلود فایل .deb
     await _dio.download(url, debPath);
 
-    // نصب فایل .deb
     if (Platform.isLinux) {
       final result = await Process.run('sudo', ['dpkg', '-i', debPath]);
 
-      // نمایش خروجی نصب در Console
       print(result.stdout);
       if (result.exitCode != 0) {
         print(result.stderr);
         throw 'Failed to install .deb package';
       }
 
-      // پاکسازی فایل‌های موقت
       await File(debPath).delete();
 
-      // بستن و اجرای مجدد برنامه
       await _restartApp();
     }
   }
 
   Future<void> _restartApp() async {
     if (Platform.isLinux) {
-      final executable = Platform.resolvedExecutable;
-      final processId = pid;
+      final String executePath = Platform.resolvedExecutable;
+      final String scriptPath = path.join(path.dirname(executePath), 'restart_app.sh');
 
-      // بستن برنامه فعلی
-      await Process.run('kill', ['-9', processId.toString()]);
+      await _createRestartScript(scriptPath, executePath);
 
-      // اجرای مجدد برنامه
-      final result = await Process.run('nohup', [executable, '&'],
-          workingDirectory: Directory.current.path);
+      final result = await Process.run('bash', [scriptPath]);
 
       if (result.exitCode == 0) {
-        exit(0); // بستن برنامه فعلی بعد از اجرای مجدد
+        await File(scriptPath).delete();
+        exit(0);
       } else {
         print('Failed to restart the app');
         print(result.stderr);
+        await File(scriptPath).delete();
       }
     }
+  }
+
+  Future<void> _createRestartScript(String scriptPath, String appPath) async {
+    final script = '''
+#!/bin/bash
+
+pkill -f "$appPath"
+
+sleep 2
+
+nohup "$appPath" > /dev/null 2>&1 &
+
+exit 0
+''';
+
+    await File(scriptPath).writeAsString(script);
+    await Process.run('chmod', ['+x', scriptPath]);
   }
 
   @override
@@ -182,8 +187,7 @@ class MyHomePageState extends State<MyHomePage> {
               },
               child: const Text(' روزشمار ایرانی '),
             ),
-            Text(
-                'Current App Version: $currentVersion'), // نمایش نسخه فعلی اپلیکیشن
+            Text('Current App Version: $currentVersion'),
           ],
         ),
       ),
