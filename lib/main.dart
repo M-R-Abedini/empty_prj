@@ -171,7 +171,7 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' تاریخ و زمان فارسی'),
+        title: const Text(' تاریخ و زمان '),
       ),
       body: Center(
         child: Column(
@@ -194,7 +194,7 @@ class MyHomePageState extends State<MyHomePage> {
                   });
                 }
               },
-              child: const Text('تاریخ انتخاب'),
+              child: const Text('تاریخ '),
             ),
             Text(
                 'Current App Version: $currentVersion'), // نمایش نسخه فعلی اپلیکیشن
