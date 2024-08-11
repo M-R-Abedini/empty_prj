@@ -1,8 +1,8 @@
 {
-  "version": "1.0.6",
-  "linux_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.6/linux-release-bundle.zip",
-  "linux_deb_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.6/linux-release-bundle.deb",
-  "windows_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.6/windows-release-bundle.zip",
-  "android_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.6/app-release.apk",
-  "release_notes": "Release of the build from the commit 022c9ec726c5338db46c86fa0fce2f542dd4d139."
+  "version": "1.0.7",
+  "linux_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.7/linux-release-bundle.zip",
+  "linux_deb_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.7/linux-release-bundle.deb",
+  "windows_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.7/windows-release-bundle.zip",
+  "android_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.7/app-release.apk",
+  "release_notes": "Release of the build from the commit 0249f152a2e54875580f89a499b35675869067e3."
 }
