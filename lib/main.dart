@@ -124,8 +124,8 @@ class MyHomePageState extends State<MyHomePage> {
   Future<void> _restartApp() async {
     if (Platform.isLinux) {
       final String executePath = Platform.resolvedExecutable;
-      final String scriptPath =
-          path.join(path.dirname(executePath), 'restart_app.sh');
+      final Directory tempDir = await getTemporaryDirectory();
+      final String scriptPath = path.join(tempDir.path, 'restart_app.sh');
 
       await _createRestartScript(scriptPath, executePath);
 
@@ -163,7 +163,7 @@ exit 0
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' تقویم ایرانی '),
+        title: const Text(' تاریخ و زمان '),
       ),
       body: Center(
         child: Column(
@@ -186,7 +186,7 @@ exit 0
                   });
                 }
               },
-              child: const Text(' تاریخ انتخاب کنید '),
+              child: const Text(' روزشمار ایرانی '),
             ),
             Text('Current App Version: $currentVersion'),
           ],
