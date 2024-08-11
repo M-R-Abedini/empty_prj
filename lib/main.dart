@@ -165,7 +165,7 @@ class MyHomePageState extends State<MyHomePage> {
                   });
                 }
               },
-              child: const Text('تاریخ و زمان دقیق را انتخاب کنید '),
+              child: const Text(' تقویم شمسی'),
             ),
 
             SizedBox(
