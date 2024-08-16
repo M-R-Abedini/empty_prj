@@ -45,32 +45,41 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkForUpdate() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      currentVersion = packageInfo.version;
-    });
-    final response = await _dio.get(
-        'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        currentVersion = packageInfo.version;
+      });
 
-    if (response.statusCode == 200) {
-      print(response.data);
-      final data = jsonDecode(response.data) as Map<String, dynamic>;
-      final versionInfo = VersionInfo.fromJson(data);
+      final response = await _dio.get(
+          'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
-      String newVersion = versionInfo.version;
-      String downloadUrl = versionInfo.linuxUrl;
+      if (response.statusCode == 200) {
+        print(response.data);
+        final data = jsonDecode(response.data) as Map<String, dynamic>;
+        final versionInfo = VersionInfo.fromJson(data);
 
-      if (Platform.isAndroid) {
-        downloadUrl = data['android_url'];
-      } else if (Platform.isWindows) {
-        downloadUrl = data['windows_url'];
-      } else if (Platform.isLinux) {
-        downloadUrl = data['linux_deb_url'];
+        String newVersion = versionInfo.version;
+        String downloadUrl = versionInfo.linuxUrl;
+
+        if (Platform.isAndroid) {
+          downloadUrl = data['android_url'];
+        } else if (Platform.isWindows) {
+          downloadUrl = data['windows_url'];
+        } else if (Platform.isLinux) {
+          downloadUrl = data['linux_deb_url'];
+        }
+
+        if (newVersion != currentVersion && downloadUrl.isNotEmpty) {
+          _showUpdateDialog(downloadUrl);
+        }
+      } else {
+        // مدیریت وضعیت‌های غیر 200
+        print('خطا در دریافت اطلاعات نسخه: وضعیت ${response.statusCode}');
       }
-
-      if (newVersion != currentVersion && downloadUrl.isNotEmpty) {
-        _showUpdateDialog(downloadUrl);
-      }
+    } catch (e) {
+      // مدیریت خطا
+      print('خطا در بررسی نسخه: $e');
     }
   }
 
@@ -100,22 +109,40 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _downloadAndInstall(String url) async {
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String debPath = '${appDocDir.path}/new_version.deb';
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String debPath = '${appDocDir.path}/new_version.deb';
 
-    await _dio.download(url, debPath);
+      // دانلود فایل
+      await _dio.download(url, debPath, onReceiveProgress: (received, total) {
+        if (total != -1) {
+          print(
+              'دانلود: ${(received / total * 100).toStringAsFixed(0)}% تکمیل شده');
+        }
+      });
 
-    if (Platform.isLinux) {
-      await _createInstallScript(debPath);
-      await _restartApp();
+      // بررسی وجود فایل دانلود شده
+      File downloadedFile = File(debPath);
+      if (await downloadedFile.exists()) {
+        if (Platform.isLinux) {
+          await _createInstallScript(debPath);
+          await _restartApp();
+        }
+      } else {
+        print('خطا: فایل دانلود شده یافت نشد.');
+      }
+    } catch (e) {
+      // مدیریت خطا در دانلود و نصب
+      print('خطا در دانلود یا نصب: $e');
     }
   }
 
   Future<void> _createInstallScript(String debPath) async {
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-    String script = '''
+      String script = '''
 #!/bin/bash
 sleep 2  # اضافه کردن یک تأخیر کوچک
 pkexec dpkg -i "$debPath"
@@ -123,23 +150,32 @@ rm "$debPath"
 /usr/bin/empty_prj &
 ''';
 
-    await File(scriptPath).writeAsString(script);
-    await Process.run('chmod', ['+x', scriptPath]);
+      await File(scriptPath).writeAsString(script);
+      await Process.run('chmod', ['+x', scriptPath]);
+    } catch (e) {
+      // مدیریت خطا در ایجاد اسکریپت
+      print('خطا در ایجاد اسکریپت: $e');
+    }
   }
 
   Future<void> _restartApp() async {
     if (Platform.isLinux) {
-      Directory appDocDir = await getApplicationDocumentsDirectory();
-      String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+      try {
+        Directory appDocDir = await getApplicationDocumentsDirectory();
+        String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-      // اجرای اسکریپت در پس‌زمینه
-      await Process.start('bash', [scriptPath]);
+        // اجرای اسکریپت در پس‌زمینه
+        await Process.start('bash', [scriptPath]);
 
-      // افزودن یک تأخیر کوچک قبل از بستن برنامه
-      await Future.delayed(Duration(seconds: 2));
+        // افزودن یک تأخیر کوچک قبل از بستن برنامه
+        await Future.delayed(const Duration(seconds: 2));
 
-      // بستن برنامه فعلی
-      exit(0);
+        // بستن برنامه فعلی
+        exit(0);
+      } catch (e) {
+        // مدیریت خطا در راه‌اندازی مجدد
+        print('خطا در راه‌اندازی مجدد برنامه: $e');
+      }
     }
   }
 
