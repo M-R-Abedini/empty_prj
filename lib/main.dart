@@ -117,7 +117,7 @@ class MyHomePageState extends State<MyHomePage> {
       await _dio.download(url, debPath, onReceiveProgress: (received, total) {
         if (total != -1) {
           print(
-              'دانلود: ${(received / total * 100).toStringAsFixed(0)}% تکمیل شده');
+              'چند درصد دانلود شده؟: ${(received / total * 100).toStringAsFixed(0)}%');
         }
       });
 
