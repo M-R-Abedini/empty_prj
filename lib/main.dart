@@ -117,7 +117,7 @@ class MyHomePageState extends State<MyHomePage> {
       await _dio.download(url, debPath, onReceiveProgress: (received, total) {
         if (total != -1) {
           print(
-              'چند درصد دانلود شده؟: ${(received / total * 100).toStringAsFixed(0)}%');
+              'دانلود: ${(received / total * 100).toStringAsFixed(0)}% تکمیل شده');
         }
       });
 
@@ -138,21 +138,24 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _createInstallScript(String debPath) async {
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-    String script = '''
+      String script = '''
 #!/bin/bash
 sleep 2  # اضافه کردن یک تأخیر کوچک
 pkexec dpkg -i "$debPath"
-pkexec systemctl daemon-reload 
-pkexec dpkg --configure -a
 rm "$debPath"
 /usr/bin/empty_prj &
 ''';
 
-    await File(scriptPath).writeAsString(script);
-    await Process.run('chmod', ['+x', scriptPath]);
+      await File(scriptPath).writeAsString(script);
+      await Process.run('chmod', ['+x', scriptPath]);
+    } catch (e) {
+      // مدیریت خطا در ایجاد اسکریپت
+      print('خطا در ایجاد اسکریپت: $e');
+    }
   }
 
   Future<void> _restartApp() async {
