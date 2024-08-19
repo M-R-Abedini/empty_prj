@@ -37,7 +37,6 @@ class MyHomePageState extends State<MyHomePage> {
   Jalali selectedDate = Jalali.now();
   final Dio _dio = Dio();
   String currentVersion = '';
-  String? sudoPassword;
 
   @override
   void initState() {
@@ -140,17 +139,13 @@ class MyHomePageState extends State<MyHomePage> {
 
   Future<void> _createInstallScript(String debPath) async {
     try {
-      // اگر پسورد هنوز دریافت نشده است، درخواست کنید
-      if (sudoPassword == null) {
-        sudoPassword = await _promptForPassword();
-      }
-
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
       String script = '''
 #!/bin/bash
-echo "$sudoPassword" | sudo -S dpkg -i "$debPath"
+sleep 2  # اضافه کردن یک تأخیر کوچک
+pkexec dpkg -i "$debPath"
 rm "$debPath"
 /usr/bin/empty_prj &
 ''';
@@ -161,32 +156,6 @@ rm "$debPath"
       // مدیریت خطا در ایجاد اسکریپت
       print('خطا در ایجاد اسکریپت: $e');
     }
-  }
-
-  Future<String?> _promptForPassword() async {
-    TextEditingController passwordController = TextEditingController();
-
-    return showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('رمز عبور مورد نیاز است'),
-          content: TextField(
-            controller: passwordController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'رمز عبور'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('تأیید'),
-              onPressed: () {
-                Navigator.of(context).pop(passwordController.text);
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _restartApp() async {
@@ -214,13 +183,7 @@ rm "$debPath"
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          ' تاریخ و زمان ',
-          textDirection: TextDirection.rtl,
-          style: TextStyle(
-            color: Colors.red,
-          ),
-        ),
+        title: const Text(' تاریخ و زمان '),
       ),
       body: Center(
         child: Column(
