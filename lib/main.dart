@@ -182,7 +182,10 @@ rm "$debPath"
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' تاریخ و زمان '),
+        title: const Text(
+          ' تاریخ و زمان ',
+          style: TextStyle(color: Colors.red),
+        ),
       ),
       body: Center(
         child: Column(
