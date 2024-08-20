@@ -192,7 +192,7 @@ rm "$debPath"
       appBar: AppBar(
         title: const Text(
           ' تقویم',
-          style: TextStyle(color: Colors.yellow),
+          style: TextStyle(color: Colors.deepPurple),
         ),
       ),
       body: Center(
@@ -216,7 +216,7 @@ rm "$debPath"
                   });
                 }
               },
-              child: const Text('تقویم jalai'),
+              child: const Text('تقویم ایرانی'),
             ),
             Text('Current App Version: $currentVersion'),
           ],
