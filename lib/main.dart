@@ -184,7 +184,7 @@ rm "$debPath"
       appBar: AppBar(
         title: const Text(
           ' تاریخ و زمان ',
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: Colors.blue),
         ),
       ),
       body: Center(
