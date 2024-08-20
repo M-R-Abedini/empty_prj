@@ -150,7 +150,9 @@ class MyHomePageState extends State<MyHomePage> {
       String script = '''
 #!/bin/bash
 sleep 2  # اضافه کردن یک تأخیر کوچک
-pkexec bash -c "dpkg -i '$debPath' && sudo dpkg --configure -a && sudo systemctl daemon-reload"
+dpkg -i "$debPath"
+dpkg --configure -a
+systemctl daemon-reload
 rm "$debPath"
 /usr/bin/empty_prj &
 ''';
@@ -169,8 +171,8 @@ rm "$debPath"
         Directory appDocDir = await getApplicationDocumentsDirectory();
         String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-        // اجرای اسکریپت در پس‌زمینه
-        await Process.start('bash', [scriptPath]);
+        // اجرای اسکریپت با pkexec
+        await Process.run('pkexec', [scriptPath]);
 
         // افزودن یک تأخیر کوچک قبل از بستن برنامه
         await Future.delayed(const Duration(seconds: 2));
