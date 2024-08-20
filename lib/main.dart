@@ -148,18 +148,32 @@ class MyHomePageState extends State<MyHomePage> {
       String scriptPath = '${appDocDir.path}/install_and_restart.sh';
       String currentExecutable = Platform.resolvedExecutable;
       String appName = currentExecutable.split('/').last;
+      String logPath = '${appDocDir.path}/update_log.txt';
 
       String script = '''
 #!/bin/bash
+exec > $logPath 2>&1  # Redirect output to log file
+set -x  # Enable command tracing
+
+echo "Starting update process"
 sleep 2
 pkill -f "$appName"  # Kill the current running instance
+echo "Current instance killed"
+
 sudo dpkg -i "$debPath"
 sudo dpkg --configure -a
 sudo systemctl daemon-reload
 sudo update-desktop-database
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 rm "$debPath"
-nohup "$currentExecutable" > /dev/null 2>&1 &
+echo "Update process completed"
+
+# Get the current user
+CURRENT_USER=\$(logname)
+
+# Run the new version as the current user
+su - \$CURRENT_USER -c "nohup $currentExecutable > /dev/null 2>&1 &"
+echo "New version started"
 ''';
 
       await File(scriptPath).writeAsString(script);
@@ -174,14 +188,25 @@ nohup "$currentExecutable" > /dev/null 2>&1 &
       try {
         Directory appDocDir = await getApplicationDocumentsDirectory();
         String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+        String logPath = '${appDocDir.path}/update_log.txt';
 
         // اجرای اسکریپت با pkexec و منتظر ماندن برای اتمام آن
         ProcessResult result = await Process.run('pkexec', [scriptPath]);
 
         if (result.exitCode != 0) {
           print('خطا در اجرای اسکریپت: ${result.stderr}');
+          // خواندن و نمایش محتویات فایل لاگ
+          String logContent = await File(logPath).readAsString();
+          print('محتویات فایل لاگ:\n$logContent');
           return;
         }
+
+        // خواندن و نمایش محتویات فایل لاگ
+        String logContent = await File(logPath).readAsString();
+        print('محتویات فایل لاگ:\n$logContent');
+
+        // افزودن تأخیر قبل از بستن برنامه
+        await Future.delayed(Duration(seconds: 5));
 
         // بستن برنامه فعلی
         exit(0);
