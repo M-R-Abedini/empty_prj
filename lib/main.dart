@@ -59,7 +59,7 @@ class MyHomePageState extends State<MyHomePage> {
           'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
       if (response.statusCode == 200) {
-        print(response.data);
+        // print(response.data);
         final data = jsonDecode(response.data) as Map<String, dynamic>;
         final versionInfo = VersionInfo.fromJson(data);
 
@@ -147,24 +147,25 @@ class MyHomePageState extends State<MyHomePage> {
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-      // اینجا مسیر اجرایی فعلی برنامه را استخراج می‌کنیم
+      // مسیر اجرایی برنامه فعلی
       String currentExecutable = Platform.resolvedExecutable;
 
       String script = '''
 #!/bin/bash
-sleep 2  # اضافه کردن یک تأخیر کوچک
+sleep 2
 dpkg -i "$debPath"
 dpkg --configure -a
 systemctl daemon-reload
-update-desktop-database  # بروزرسانی دیتابیس نرم‌افزارها
+update-desktop-database 
+gtk-update-icon-cache -f /usr/share/icons/hicolor  
 rm "$debPath"
-"$currentExecutable" &  # اجرای مجدد نرم‌افزار به صورت پویا
+"$currentExecutable" &
+
 ''';
 
       await File(scriptPath).writeAsString(script);
       await Process.run('chmod', ['+x', scriptPath]);
     } catch (e) {
-      // مدیریت خطا در ایجاد اسکریپت
       print('خطا در ایجاد اسکریپت: $e');
     }
   }

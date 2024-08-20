@@ -22,8 +22,17 @@ jobs:
         sudo apt-get install -y ninja-build libgtk-3-dev
     - name: Enable linux build
       run: flutter config --enable-linux-desktop
+    
+    # استخراج نام پروژه از pubspec.yaml
+    - name: Extract project name
+      id: extract_project_name
+      run: |
+        PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}')
+        echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
+
     - name: Build Flutter app for Linux
       run: flutter build linux --release
+    
     - name: Create .deb package
       run: |
         mkdir -p package/usr/bin
@@ -33,26 +42,26 @@ jobs:
         # Copy all files including directories recursively
         cp -r build/linux/x64/release/bundle/* package/usr/bin/
 
-        # Create the .desktop file
-        echo "[Desktop Entry]" > package/usr/share/applications/my-flutter-app.desktop
-        echo "Name=My Flutter App" >> package/usr/share/applications/my-flutter-app.desktop
-        echo "Exec=/usr/bin/my-flutter-app" >> package/usr/share/applications/my-flutter-app.desktop
-        echo "Icon=my-flutter-app" >> package/usr/share/applications/my-flutter-app.desktop
-        echo "Type=Application" >> package/usr/share/applications/my-flutter-app.desktop
-        echo "Categories=Utility;" >> package/usr/share/applications/my-flutter-app.desktop
+        # Create the .desktop file with the extracted project name
+        echo "[Desktop Entry]" > package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
+        echo "Name=${{ env.PROJECT_NAME }}" >> package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
+        echo "Exec=/usr/bin/${{ env.PROJECT_NAME }}" >> package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
+        echo "Icon=${{ env.PROJECT_NAME }}.png" >> package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
+        echo "Type=Application" >> package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
+        echo "Categories=Utility;" >> package/usr/share/applications/${{ env.PROJECT_NAME }}.desktop
 
         # Copy the icon (adjust path and size as necessary)
-        cp lib/assets/Icon-192.png package/usr/share/icons/hicolor/256x256/apps/my-flutter-app.png
+        cp lib/assets/Icon-192.png package/usr/share/icons/hicolor/256x256/apps/${{ env.PROJECT_NAME }}.png
 
         # Create DEBIAN/control file
         mkdir -p package/DEBIAN
-        echo "Package: my-flutter-app" > package/DEBIAN/control
+        echo "Package: ${{ env.PROJECT_NAME }}" > package/DEBIAN/control
         echo "Version: 1.0.${{ github.run_number }}" >> package/DEBIAN/control
         echo "Section: base" >> package/DEBIAN/control
         echo "Priority: optional" >> package/DEBIAN/control
         echo "Architecture: amd64" >> package/DEBIAN/control
         echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
-        echo "Description: My Flutter App" >> package/DEBIAN/control
+        echo "Description: ${{ env.PROJECT_NAME }}" >> package/DEBIAN/control
 
         dpkg-deb --build package linux-release-bundle.deb
     - name: Compress release bundle
@@ -65,6 +74,7 @@ jobs:
         path: |
           linux-release-bundle.deb
           linux-release-bundle.zip
+
 
   build-windows:
     runs-on: windows-latest
