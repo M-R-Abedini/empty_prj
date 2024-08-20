@@ -1,8 +1,8 @@
 {
-  "version": "1.0.49",
-  "linux_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.49/empty-prj-linux-release-bundle.zip",
-  "linux_deb_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.49/empty-prj-linux-release-bundle.deb",
-  "windows_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.49/windows-release-bundle.zip",
-  "android_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.49/app-release.apk",
-  "release_notes": "Release of the build from the commit 3c38a9ecb4400bf78e08d609fcd251e9c4ab3e9c."
+  "version": "1.0.50",
+  "linux_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.50/empty-prj-linux-release-bundle.zip",
+  "linux_deb_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.50/empty-prj-linux-release-bundle.deb",
+  "windows_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.50/windows-release-bundle.zip",
+  "android_url": "https://github.com/M-R-Abedini/empty_prj/releases/download/v1.0.50/app-release.apk",
+  "release_notes": "Release of the build from the commit 711df3435efafe696ca1454634690d3bb96f7f69."
 }
