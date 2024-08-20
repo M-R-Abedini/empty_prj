@@ -189,8 +189,8 @@ rm "$debPath"
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          ' تاریخ و زمان ',
-          style: TextStyle(color: Colors.blue),
+          ' تقویم',
+          style: TextStyle(color: Colors.green),
         ),
       ),
       body: Center(
