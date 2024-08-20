@@ -144,9 +144,8 @@ class MyHomePageState extends State<MyHomePage> {
 
       String script = '''
 #!/bin/bash
-dpkg -i "$debPath"
-dpkg --configure -a
-systemctl daemon-reload
+sleep 2  # اضافه کردن یک تأخیر کوچک
+pkexec bash -c "dpkg -i '$debPath' && dpkg --configure -a && systemctl daemon-reload"
 rm "$debPath"
 /usr/bin/empty_prj &
 ''';
@@ -154,6 +153,7 @@ rm "$debPath"
       await File(scriptPath).writeAsString(script);
       await Process.run('chmod', ['+x', scriptPath]);
     } catch (e) {
+      // مدیریت خطا در ایجاد اسکریپت
       print('خطا در ایجاد اسکریپت: $e');
     }
   }
@@ -164,8 +164,8 @@ rm "$debPath"
         Directory appDocDir = await getApplicationDocumentsDirectory();
         String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-        // اجرای اسکریپت با استفاده از pkexec برای درخواست رمز عبور یکبار
-        await Process.start('pkexec', ['bash', scriptPath]);
+        // اجرای اسکریپت در پس‌زمینه
+        await Process.start('bash', [scriptPath]);
 
         // افزودن یک تأخیر کوچک قبل از بستن برنامه
         await Future.delayed(const Duration(seconds: 2));
@@ -173,6 +173,7 @@ rm "$debPath"
         // بستن برنامه فعلی
         exit(0);
       } catch (e) {
+        // مدیریت خطا در راه‌اندازی مجدد
         print('خطا در راه‌اندازی مجدد برنامه: $e');
       }
     }
