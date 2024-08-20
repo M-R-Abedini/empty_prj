@@ -196,8 +196,8 @@ nohup "$currentExecutable" > /dev/null 2>&1 &
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'ایرانی تقویم',
-          style: TextStyle(color: Colors.blue),
+          ' تقویم',
+          style: TextStyle(color: Colors.red),
         ),
       ),
       body: Center(
