@@ -150,7 +150,7 @@ class MyHomePageState extends State<MyHomePage> {
       String script = '''
 #!/bin/bash
 sleep 2  # اضافه کردن یک تأخیر کوچک
-pkexec bash -c "dpkg -i '$debPath' && dpkg --configure -a && systemctl daemon-reload"
+pkexec bash -c "dpkg -i '$debPath' && sudo dpkg --configure -a && sudo systemctl daemon-reload"
 rm "$debPath"
 /usr/bin/empty_prj &
 ''';
