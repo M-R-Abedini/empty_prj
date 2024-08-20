@@ -146,21 +146,20 @@ class MyHomePageState extends State<MyHomePage> {
     try {
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String scriptPath = '${appDocDir.path}/install_and_restart.sh';
-
-      // مسیر اجرایی برنامه فعلی
       String currentExecutable = Platform.resolvedExecutable;
+      String appName = currentExecutable.split('/').last;
 
       String script = '''
 #!/bin/bash
 sleep 2
-dpkg -i "$debPath"
-dpkg --configure -a
-systemctl daemon-reload
-update-desktop-database 
-gtk-update-icon-cache -f /usr/share/icons/hicolor  
+pkill -f "$appName"  # Kill the current running instance
+sudo dpkg -i "$debPath"
+sudo dpkg --configure -a
+sudo systemctl daemon-reload
+sudo update-desktop-database
+sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 rm "$debPath"
-"$currentExecutable" &
-
+nohup "$currentExecutable" > /dev/null 2>&1 &
 ''';
 
       await File(scriptPath).writeAsString(script);
@@ -176,16 +175,17 @@ rm "$debPath"
         Directory appDocDir = await getApplicationDocumentsDirectory();
         String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
-        // اجرای اسکریپت با pkexec
-        await Process.run('pkexec', [scriptPath]);
+        // اجرای اسکریپت با pkexec و منتظر ماندن برای اتمام آن
+        ProcessResult result = await Process.run('pkexec', [scriptPath]);
 
-        // افزودن یک تأخیر کوچک قبل از بستن برنامه
-        await Future.delayed(const Duration(seconds: 2));
+        if (result.exitCode != 0) {
+          print('خطا در اجرای اسکریپت: ${result.stderr}');
+          return;
+        }
 
         // بستن برنامه فعلی
         exit(0);
       } catch (e) {
-        // مدیریت خطا در راه‌اندازی مجدد
         print('خطا در راه‌اندازی مجدد برنامه: $e');
       }
     }
