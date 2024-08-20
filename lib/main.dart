@@ -147,14 +147,18 @@ class MyHomePageState extends State<MyHomePage> {
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String scriptPath = '${appDocDir.path}/install_and_restart.sh';
 
+      // اینجا مسیر اجرایی فعلی برنامه را استخراج می‌کنیم
+      String currentExecutable = Platform.resolvedExecutable;
+
       String script = '''
 #!/bin/bash
 sleep 2  # اضافه کردن یک تأخیر کوچک
 dpkg -i "$debPath"
 dpkg --configure -a
 systemctl daemon-reload
+update-desktop-database  # بروزرسانی دیتابیس نرم‌افزارها
 rm "$debPath"
-/usr/bin/empty_prj &
+"$currentExecutable" &  # اجرای مجدد نرم‌افزار به صورت پویا
 ''';
 
       await File(scriptPath).writeAsString(script);
