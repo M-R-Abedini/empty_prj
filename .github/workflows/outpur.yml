@@ -24,10 +24,12 @@ jobs:
       run: flutter config --enable-linux-desktop
     - name: Build Flutter app for Linux
       run: flutter build linux --release
-    - name: Read project name
+    - name: Read and sanitize project name
       run: |
         PROJECT_NAME=$(grep "name:" pubspec.yaml | awk '{print $2}' | tr -d '"')
+        SANITIZED_NAME=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.-]/-/g')
         echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
+        echo "SANITIZED_NAME=$SANITIZED_NAME" >> $GITHUB_ENV
 
     - name: Create .deb package
       run: |
@@ -51,7 +53,7 @@ jobs:
 
         # Create DEBIAN/control file
         mkdir -p package/DEBIAN
-        echo "Package: ${{ env.PROJECT_NAME }}" > package/DEBIAN/control
+        echo "Package: ${{ env.SANITIZED_NAME }}" > package/DEBIAN/control
         echo "Version: 1.0.${{ github.run_number }}" >> package/DEBIAN/control
         echo "Section: base" >> package/DEBIAN/control
         echo "Priority: optional" >> package/DEBIAN/control
@@ -59,20 +61,19 @@ jobs:
         echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
         echo "Description: ${{ env.PROJECT_NAME }}" >> package/DEBIAN/control
 
-        dpkg-deb --build package ${{ env.PROJECT_NAME }}-linux-release-bundle.deb
+        dpkg-deb --build package ${{ env.SANITIZED_NAME }}-linux-release-bundle.deb
 
     - name: Compress release bundle
       run: |
-        zip -r ${{ env.PROJECT_NAME }}-linux-release-bundle.zip build/linux/x64/release/bundle/*
+        zip -r ${{ env.SANITIZED_NAME }}-linux-release-bundle.zip build/linux/x64/release/bundle/*
 
     - name: Upload Linux artifact
       uses: actions/upload-artifact@v4
       with:
         name: linux-release
         path: |
-          ${{ env.PROJECT_NAME }}-linux-release-bundle.deb
-          ${{ env.PROJECT_NAME }}-linux-release-bundle.zip
-
+          ${{ env.SANITIZED_NAME }}-linux-release-bundle.deb
+          ${{ env.SANITIZED_NAME }}-linux-release-bundle.zip
   build-windows:
     runs-on: windows-latest
     steps:
