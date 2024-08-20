@@ -44,6 +44,10 @@ class MyHomePageState extends State<MyHomePage> {
     _checkForUpdate();
   }
 
+  int _versionToNumber(String version) {
+    return int.parse(version.replaceAll('.', ''));
+  }
+
   Future<void> _checkForUpdate() async {
     try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -52,7 +56,7 @@ class MyHomePageState extends State<MyHomePage> {
       });
 
       final response = await _dio.get(
-          'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/dev/version.json');
+          'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
       if (response.statusCode == 200) {
         print(response.data);
@@ -70,15 +74,16 @@ class MyHomePageState extends State<MyHomePage> {
           downloadUrl = data['linux_deb_url'];
         }
 
-        if (newVersion != currentVersion && downloadUrl.isNotEmpty) {
+        int currentVersionNumber = _versionToNumber(currentVersion);
+        int newVersionNumber = _versionToNumber(newVersion);
+
+        if (newVersionNumber > currentVersionNumber && downloadUrl.isNotEmpty) {
           _showUpdateDialog(downloadUrl);
         }
       } else {
-        // مدیریت وضعیت‌های غیر 200
         print('خطا در دریافت اطلاعات نسخه: وضعیت ${response.statusCode}');
       }
     } catch (e) {
-      // مدیریت خطا
       print('خطا در بررسی نسخه: $e');
     }
   }
