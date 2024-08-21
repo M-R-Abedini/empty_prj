@@ -96,13 +96,13 @@ class MyHomePageState extends State<MyHomePage> {
         content: const Text('آیا می‌خواهید نسخه جدید را دانلود کنید؟'),
         actions: [
           TextButton(
-            child: const Text('خیر'),
+            child: const Text('الان نه'),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('بله'),
+            child: const Text('باشه'),
             onPressed: () {
               Navigator.of(context).pop();
               _downloadAndInstall(downloadUrl);
