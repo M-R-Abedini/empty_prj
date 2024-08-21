@@ -206,7 +206,7 @@ echo "New version started"
         print('محتویات فایل لاگ:\n$logContent');
 
         // افزودن تأخیر قبل از بستن برنامه
-        await Future.delayed(Duration(seconds: 5));
+        await Future.delayed(Duration(seconds: 2));
 
         // بستن برنامه فعلی
         exit(0);
