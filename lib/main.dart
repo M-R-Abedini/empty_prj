@@ -150,6 +150,9 @@ class MyHomePageState extends State<MyHomePage> {
       String appName = currentExecutable.split('/').last;
       String logPath = '${appDocDir.path}/update_log.txt';
 
+      // گرفتن مقدار متغیر DISPLAY
+      String? display = Platform.environment['DISPLAY'];
+
       String script = '''
 #!/bin/bash
 exec > $logPath 2>&1  # Redirect output to log file
@@ -167,11 +170,13 @@ sudo update-desktop-database
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 echo "Update process completed"
 sleep 1
-# Run the new version 
+
+# تنظیم DISPLAY و اجرای نسخه جدید
+export DISPLAY=$display
 "$currentExecutable" &
 echo "New version started"
-rm "$debPath"
 
+rm "$debPath"
 ''';
 
       await File(scriptPath).writeAsString(script);
