@@ -223,7 +223,7 @@ echo "New version started"
       appBar: AppBar(
         title: const Text(
           ' تقویم جلال',
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: Colors.teal),
         ),
       ),
       body: Center(
