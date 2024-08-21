@@ -172,8 +172,9 @@ echo "Update process completed"
 CURRENT_USER=\$(logname)
 
 # Run the new version as the current user
-su - \$CURRENT_USER -c "nohup $currentExecutable > /dev/null 2>&1 &"
+nohup $currentExecutable > /dev/null 2>&1 &
 echo "New version started"
+
 ''';
 
       await File(scriptPath).writeAsString(script);
