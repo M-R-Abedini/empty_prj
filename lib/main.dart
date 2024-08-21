@@ -156,7 +156,7 @@ exec > $logPath 2>&1  # Redirect output to log file
 set -x  # Enable command tracing
 
 echo "Starting update process"
-sleep 2
+sleep 1
 pkill -f "$appName"  # Kill the current running instance
 echo "Current instance killed"
 
@@ -165,15 +165,12 @@ sudo dpkg --configure -a
 sudo systemctl daemon-reload
 sudo update-desktop-database
 sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
-rm "$debPath"
 echo "Update process completed"
-
-# Get the current user
-CURRENT_USER=\$(logname)
-
-# Run the new version as the current user
-nohup $currentExecutable > /dev/null 2>&1 &
+sleep 1
+# Run the new version 
+"$currentExecutable" &
 echo "New version started"
+rm "$debPath"
 
 ''';
 
