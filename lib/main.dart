@@ -277,26 +277,35 @@ echo "New version started"
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          ' تقویم شمسی',
-          style: TextStyle(color: Colors.blue),
+          ' تقویم جلال',
+          style: TextStyle(color: Colors.red),
         ),
-        centerTitle: true,
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            final f = selectedDate.formatCompactDate();
-            final f2 = selectedDate.formatFullDate();
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('تاریخ انتخابی'),
-                content: Text(
-                    'تاریخ انتخاب شده: $f \nفرمت کامل تاریخ انتخاب شده: $f2'),
-              ),
-            );
-          },
-          child: const Text('تاریخ را نمایش بده'),
+        child: Column(
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final Jalali? picked = await showPersianDatePicker(
+                  context: context,
+                  initialDate: Jalali.fromDateTime(
+                      DateTime.fromMillisecondsSinceEpoch(1722942780132)),
+                  firstDate: Jalali(1390),
+                  lastDate: Jalali(1410),
+                );
+                if (picked != null) {
+                  setState(() {
+                    selectedDate = picked;
+                    int millisecondsSinceEpoch =
+                        selectedDate.toDateTime().millisecondsSinceEpoch;
+                    print(millisecondsSinceEpoch);
+                  });
+                }
+              },
+              child: const Text('تقویم ایرانی'),
+            ),
+            Text('Current App Version: $currentVersion'),
+          ],
         ),
       ),
     );
