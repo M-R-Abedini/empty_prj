@@ -277,8 +277,8 @@ echo "New version started"
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          ' تقویم جلال',
-          style: TextStyle(color: Colors.red),
+          ' تقویم شمسی',
+          style: TextStyle(color: Colors.blue),
         ),
         centerTitle: true,
       ),
