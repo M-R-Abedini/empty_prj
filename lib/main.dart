@@ -59,7 +59,6 @@ class MyHomePageState extends State<MyHomePage> {
           'https://raw.githubusercontent.com/M-R-Abedini/empty_prj/main/version.json');
 
       if (response.statusCode == 200) {
-        // print(response.data);
         final data = jsonDecode(response.data) as Map<String, dynamic>;
         final versionInfo = VersionInfo.fromJson(data);
 
@@ -131,13 +130,13 @@ class MyHomePageState extends State<MyHomePage> {
       if (await downloadedFile.exists()) {
         if (Platform.isLinux) {
           await _createInstallScript(debPath);
+          await _createRestartScript(); // فراخوانی متد برای ایجاد اسکریپت راه‌اندازی مجدد
           await _restartApp();
         }
       } else {
         print('خطا: فایل دانلود شده یافت نشد.');
       }
     } catch (e) {
-      // مدیریت خطا در دانلود و نصب
       print('خطا در دانلود یا نصب: $e');
     }
   }
@@ -145,44 +144,90 @@ class MyHomePageState extends State<MyHomePage> {
   Future<void> _createInstallScript(String debPath) async {
     try {
       Directory appDocDir = await getApplicationDocumentsDirectory();
-      String scriptPath = '${appDocDir.path}/install_and_restart.sh';
+      String scriptPath = '${appDocDir.path}/install.sh';
+      String logPath = '${appDocDir.path}/install_log.txt';
+
+      String script = '''
+#!/bin/bash
+LOG_PATH="$logPath"
+DEB_PATH="$debPath"
+
+exec > \$LOG_PATH 2>&1  # Redirect output to log file
+set -x  # Enable command tracing
+
+echo "Starting installation process"
+sleep 1
+
+xhost +SI:localuser:root
+
+sudo dpkg -i "\$DEB_PATH"
+sudo dpkg --configure -a
+sudo systemctl daemon-reload
+sudo update-desktop-database
+sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
+
+echo "Installation process completed"
+
+rm "\$DEB_PATH"
+''';
+
+      await File(scriptPath).writeAsString(script);
+      await Process.run('chmod', ['+x', scriptPath]);
+
+      if (await File(scriptPath).exists()) {
+        print('اسکریپت نصب با موفقیت ایجاد شد: $scriptPath');
+      } else {
+        print('خطا در ایجاد اسکریپت نصب: $scriptPath');
+      }
+    } catch (e) {
+      print('خطا در ایجاد اسکریپت نصب: $e');
+    }
+  }
+
+  Future<void> _createRestartScript() async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String scriptPath = '${appDocDir.path}/restart.sh';
       String currentExecutable = Platform.resolvedExecutable;
       String appName = currentExecutable.split('/').last;
-      String logPath = '${appDocDir.path}/update_log.txt';
+      String logPath = '${appDocDir.path}/restart_log.txt';
 
       // گرفتن مقدار متغیر DISPLAY
       String? display = Platform.environment['DISPLAY'];
 
       String script = '''
 #!/bin/bash
-exec > $logPath 2>&1  # Redirect output to log file
+APP_NAME="$appName"
+LOG_PATH="$logPath"
+DISPLAY="$display"
+
+exec > \$LOG_PATH 2>&1  # Redirect output to log file
 set -x  # Enable command tracing
 
-echo "Starting update process"
+echo "Starting restart process"
 sleep 1
-pkill -f "$appName"  # Kill the current running instance
+
+# کشتن فرآیند قبلی
+pkill -f "\$APP_NAME"
 echo "Current instance killed"
 
-sudo dpkg -i "$debPath"
-sudo dpkg --configure -a
-sudo systemctl daemon-reload
-sudo update-desktop-database
-sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
-echo "Update process completed"
-sleep 1
-
-# تنظیم DISPLAY و اجرای نسخه جدید
-export DISPLAY=$display
+# تنظیم DISPLAY و اجرای برنامه
+export DISPLAY=\$DISPLAY
 "$currentExecutable" &
-echo "New version started"
 
-rm "$debPath"
+echo "New version started"
 ''';
 
       await File(scriptPath).writeAsString(script);
       await Process.run('chmod', ['+x', scriptPath]);
+
+      if (await File(scriptPath).exists()) {
+        print('اسکریپت راه‌اندازی مجدد با موفقیت ایجاد شد: $scriptPath');
+      } else {
+        print('خطا در ایجاد اسکریپت راه‌اندازی مجدد: $scriptPath');
+      }
     } catch (e) {
-      print('خطا در ایجاد اسکریپت: $e');
+      print('خطا در ایجاد اسکریپت راه‌اندازی مجدد: $e');
     }
   }
 
@@ -190,23 +235,31 @@ rm "$debPath"
     if (Platform.isLinux) {
       try {
         Directory appDocDir = await getApplicationDocumentsDirectory();
-        String scriptPath = '${appDocDir.path}/install_and_restart.sh';
-        String logPath = '${appDocDir.path}/update_log.txt';
+        String installScriptPath = '${appDocDir.path}/install.sh';
+        String restartScriptPath = '${appDocDir.path}/restart.sh';
+        String installLogPath = '${appDocDir.path}/install_log.txt';
+        String restartLogPath = '${appDocDir.path}/restart_log.txt';
 
-        // اجرای اسکریپت با pkexec و منتظر ماندن برای اتمام آن
-        ProcessResult result = await Process.run('pkexec', [scriptPath]);
-
-        if (result.exitCode != 0) {
-          print('خطا در اجرای اسکریپت: ${result.stderr}');
-          // خواندن و نمایش محتویات فایل لاگ
-          String logContent = await File(logPath).readAsString();
-          print('محتویات فایل لاگ:\n$logContent');
+        // اجرای اسکریپت نصب با pkexec
+        ProcessResult installResult =
+            await Process.run('pkexec', [installScriptPath]);
+        if (installResult.exitCode != 0) {
+          print('خطا در اجرای اسکریپت نصب: ${installResult.stderr}');
+          String installLogContent = await File(installLogPath).readAsString();
+          print('محتویات فایل لاگ نصب:\n$installLogContent');
           return;
         }
 
-        // خواندن و نمایش محتویات فایل لاگ
-        String logContent = await File(logPath).readAsString();
-        print('محتویات فایل لاگ:\n$logContent');
+        // اجرای اسکریپت راه‌اندازی مجدد بدون pkexec
+        ProcessResult restartResult =
+            await Process.run('bash', [restartScriptPath]);
+        if (restartResult.exitCode != 0) {
+          print(
+              'خطا در اجرای اسکریپت راه‌اندازی مجدد: ${restartResult.stderr}');
+          String restartLogContent = await File(restartLogPath).readAsString();
+          print('محتویات فایل لاگ راه‌اندازی مجدد:\n$restartLogContent');
+          return;
+        }
 
         // افزودن تأخیر قبل از بستن برنامه
         await Future.delayed(Duration(seconds: 2));
@@ -225,34 +278,25 @@ rm "$debPath"
       appBar: AppBar(
         title: const Text(
           ' تقویم جلال',
-          style: TextStyle(color: Colors.orange),
+          style: TextStyle(color: Colors.red),
         ),
+        centerTitle: true,
       ),
       body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                final Jalali? picked = await showPersianDatePicker(
-                  context: context,
-                  initialDate: Jalali.fromDateTime(
-                      DateTime.fromMillisecondsSinceEpoch(1722942780132)),
-                  firstDate: Jalali(1390),
-                  lastDate: Jalali(1410),
-                );
-                if (picked != null) {
-                  setState(() {
-                    selectedDate = picked;
-                    int millisecondsSinceEpoch =
-                        selectedDate.toDateTime().millisecondsSinceEpoch;
-                    print(millisecondsSinceEpoch);
-                  });
-                }
-              },
-              child: const Text('تقویم ایرانی'),
-            ),
-            Text('Current App Version: $currentVersion'),
-          ],
+        child: ElevatedButton(
+          onPressed: () {
+            final f = selectedDate.formatCompactDate();
+            final f2 = selectedDate.formatFullDate();
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('تاریخ انتخابی'),
+                content: Text(
+                    'تاریخ انتخاب شده: $f \nفرمت کامل تاریخ انتخاب شده: $f2'),
+              ),
+            );
+          },
+          child: const Text('تاریخ را نمایش بده'),
         ),
       ),
     );
@@ -264,10 +308,8 @@ class VersionInfo {
   final String linuxUrl;
   final String windowsUrl;
   final String androidUrl;
-  final String linuxDebUrl;
 
   VersionInfo({
-    required this.linuxDebUrl,
     required this.version,
     required this.linuxUrl,
     required this.windowsUrl,
@@ -280,7 +322,6 @@ class VersionInfo {
       linuxUrl: json['linux_url'],
       windowsUrl: json['windows_url'],
       androidUrl: json['android_url'],
-      linuxDebUrl: json['linux_deb_url'],
     );
   }
 }
